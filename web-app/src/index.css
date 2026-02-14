@@ -1,0 +1,443 @@
+@import "tailwindcss";
+
+
+:root {
+  /* Light Theme Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-card: #ffffff;
+  --color-bg-elevated: #ffffff;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #ffffff;
+  
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  
+  --color-accent: #0d9488;
+  --color-accent-hover: #0f766e;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.dark {
+  /* Dark Theme Colors */
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-bg-card: #1e293b;
+  --color-bg-elevated: #334155;
+  
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #0f172a;
+  
+  --color-border: #334155;
+  --color-border-light: #475569;
+  
+  --color-accent: #14b8a6;
+  --color-accent-hover: #2dd4bf;
+  
+  /* Shadows (darker for dark mode) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* ========================== */
+/* Base Styles */
+/* ========================== */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Dark Mode Component Overrides */
+
+/* Background colors */
+.dark .bg-white {
+  background-color: var(--color-bg-card);
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-50\/50 {
+  background-color: var(--color-bg-secondary);
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Text colors */
+.dark .text-gray-900 {
+  color: var(--color-text-primary);
+}
+
+.dark .text-gray-800 {
+  color: var(--color-text-primary);
+}
+
+.dark .text-gray-700 {
+  color: var(--color-text-secondary);
+}
+
+.dark .text-gray-600 {
+  color: var(--color-text-secondary);
+}
+
+.dark .text-gray-500 {
+  color: var(--color-text-muted);
+}
+
+.dark .text-gray-400 {
+  color: var(--color-text-muted);
+}
+
+/* Border colors */
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: var(--color-border);
+}
+
+.dark .border-gray-300 {
+  border-color: var(--color-border-light);
+}
+
+/* Input and form elements */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: var(--color-accent);
+}
+
+/* Cards and panels */
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg {
+  --tw-shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Dividers */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-border);
+}
+
+/* Hover states for cards */
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Modal/Dialog backgrounds */
+.dark .bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Gradient backgrounds for dark mode */
+.dark .from-gray-50 {
+  --tw-gradient-from: var(--color-bg-secondary);
+}
+
+.dark .to-white {
+  --tw-gradient-to: var(--color-bg-card);
+}
+
+.dark .bg-gradient-to-br.from-gray-50 {
+  background: linear-gradient(to bottom right, var(--color-bg-secondary), var(--color-bg-card));
+}
+
+/* Ring colors */
+.dark .ring-gray-100,
+.dark .ring-gray-200 {
+  --tw-ring-color: var(--color-border);
+}
+
+/* Special backgrounds that should remain colored */
+.dark .bg-teal-50,
+.dark .bg-teal-100 {
+  background-color: rgba(20, 184, 166, 0.15);
+}
+
+.dark .bg-green-50,
+.dark .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.dark .bg-blue-50,
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.dark .bg-red-50,
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+.dark .bg-purple-50,
+.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.15);
+}
+
+.dark .bg-indigo-50,
+.dark .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.15);
+}
+
+.dark .bg-rose-50,
+.dark .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.15);
+}
+
+/* Tables */
+.dark table thead {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+.dark table tbody tr {
+  background-color: var(--color-bg-card) !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Scrollbar styling for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
+}
+
+
+/* Landing Page Styles */
+
+
+.landing-page {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* Progress Bar Animations */
+
+
+.bg-stripes {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+@keyframes progress-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
+
+.animate-progress-stripes {
+  animation: progress-stripes 1s linear infinite;
+}
+
+
+/* Toast Notifications Dark Mode */
+
+
+.dark [data-sonner-toaster],
+.dark .react-hot-toast {
+  --toast-bg: var(--color-bg-elevated) !important;
+  --toast-text: var(--color-text-primary) !important;
+  --toast-border: var(--color-border) !important;
+}
+
+
+/* Mobile Responsiveness Utilities */
+
+
+/* Smooth momentum scrolling for iOS on horizontal scroll containers */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly minimum tap targets (44x44px recommended by Apple/Google) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent text selection on mobile but allow pointer events */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Safe area padding for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+
+/* Mobile Profile Optimizations */
+
+
+/* Ensure proper text truncation on very small screens */
+@media (max-width: 375px) {
+  .profile-card h2 {
+    font-size: 1rem;
+  }
+  
+  .profile-stats p {
+    font-size: 0.875rem;
+  }
+  
+  /* Reduce padding on very small screens */
+  .mobile-compact {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Ensure stats cards don't overflow */
+  .stats-grid {
+    gap: 0.375rem;
+  }
+}
+
+/* Extra small devices (phones, less than 360px) */
+@media (max-width: 360px) {
+  body {
+    font-size: 14px;
+  }
+  
+  /* Further reduce spacing */
+  .profile-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Optimize tab navigation for mobile */
+.tab-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.tab-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent layout shift on mobile */
+@media (max-width: 640px) {
+  /* Ensure cards maintain proper aspect ratio */
+  .profile-card {
+    overflow: hidden;
+  }
+  
+  /* Better word breaking for long text */
+  .break-words {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  
+  /* Ensure email addresses break properly */
+  .break-all {
+    word-break: break-all;
+  }
+  
+  /* Prevent horizontal scroll */
+  body, html, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}

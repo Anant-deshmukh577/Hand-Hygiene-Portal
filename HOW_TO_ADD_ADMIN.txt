@@ -1,0 +1,128 @@
+# How to Add or Change Admin & Auditor Credentials
+
+A quick guide to managing admin and auditor accounts in the AIIMS Hand Hygiene Portal.
+
+---
+
+## Easiest Method (3 Steps)
+
+### Step 1: Open the Configuration File
+
+Open this file in your code editor:
+```
+backend/scripts/quickAddAdmin.js
+```
+
+### Step 2: Change the Email and Password
+
+Find lines 10-30 and update the credentials:
+
+```javascript
+const ADMIN_CONFIG = {
+  name: 'Admin User',
+  email: 'admin@aiims.edu',      // ← Change this
+  password: 'Admin@123',          // ← Change this
+  phone: '9876543210',
+  department: 'Administration',
+  designation: 'Consultant',
+};
+
+const AUDITOR_CONFIG = {
+  name: 'Dr. Auditor',
+  email: 'auditor@aiims.edu',    // ← Change this
+  password: 'Auditor@123',        // ← Change this
+  phone: '9876543211',
+  department: 'Administration',
+  designation: 'Consultant',
+};
+```
+
+### Step 3: Run the Script
+
+Open your terminal and run:
+
+```bash
+cd backend
+node scripts/quickAddAdmin.js
+```
+
+Done! Your admin and auditor accounts are ready to use.
+
+---
+
+## Alternative: Interactive Menu
+
+If you need more control (like managing multiple users or deleting accounts), use the interactive menu:
+
+```bash
+cd backend
+node scripts/manageAdminAuditor.js
+```
+
+This gives you options to:
+- Create or update admin users
+- Create or update auditor users
+- List all admin users
+- List all auditor users
+- Delete admin users
+- Delete auditor users
+
+---
+
+## Current Default Credentials
+
+**Admin:**
+- Email: `admin@aiims.edu`
+- Password: `Admin@123`
+- Login URL: `http://localhost:3000/admin-login`
+
+**Auditor:**
+- Email: `auditor@aiims.edu`
+- Password: `Auditor@123`
+- Login URL: `http://localhost:3000/auditor-login`
+
+---
+
+## Quick Tips
+
+- You can run the script multiple times - it will update existing users instead of creating duplicates
+- Passwords must be at least 8 characters long
+- Emails must be in valid format (like `user@domain.com`)
+- The script works even while your server is running
+- You can create as many admin and auditor accounts as you need
+
+---
+
+## More Information
+
+For more detailed documentation, check out:
+- `EASY_ADMIN_SETUP.md` - Simple guide with examples
+- `backend/scripts/README.md` - Complete documentation
+- `LOGIN_CREDENTIALS.md` - All test credentials
+
+---
+
+## Troubleshooting
+
+**"MongoDB connection failed"**
+
+Make sure MongoDB is running on your machine. Start it with:
+```bash
+# Windows
+net start MongoDB
+
+# macOS/Linux
+sudo systemctl start mongod
+```
+
+**"Invalid email format"**
+
+Emails must be in the format `user@domain.com`. Check for typos.
+
+**"Password too short"**
+
+Passwords must be at least 8 characters long. Use a stronger password.
+
+---
+
+That's it! Easy admin management for your portal.

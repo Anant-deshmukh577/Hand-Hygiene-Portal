@@ -1,0 +1,23 @@
+# Environment files with sensitive credentials
+backend/.env
+web-app/.env
+android-app/.env
+**/.env.local
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
