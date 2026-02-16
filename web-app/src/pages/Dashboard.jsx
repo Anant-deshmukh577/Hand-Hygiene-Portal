@@ -63,7 +63,7 @@ const WaveIcon = () => (
 );
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showError } = useNotification();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -205,10 +205,31 @@ const Dashboard = () => {
     }
   }, [userId, fetchDashboardData]);
 
+  // Update stats when user data changes (e.g., after claiming reward)
+  useEffect(() => {
+    if (user) {
+      console.log('[Dashboard] User data changed, updating stats');
+      console.log('[Dashboard] New user.totalPoints:', user.totalPoints);
+      setStats(prev => ({
+        ...prev,
+        totalPoints: user.totalPoints || prev.totalPoints,
+        totalObservations: user.totalObservations || prev.totalObservations,
+        complianceRate: user.complianceRate || prev.complianceRate,
+      }));
+    }
+  }, [user?.totalPoints, user?.totalObservations, user?.complianceRate]);
+
   // Handle refresh
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (userId && !refreshing) {
-      fetchDashboardData(userId, true);
+      // Refresh user data from backend first
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+      // Then refresh dashboard data
+      await fetchDashboardData(userId, true);
     }
   };
 

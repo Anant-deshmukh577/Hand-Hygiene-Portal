@@ -217,6 +217,28 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const refreshUser = async () => {
+    try {
+      console.log('[AuthContext] refreshUser called - fetching fresh user data...');
+      const token = await SecureStore.getItemAsync('token');
+      if (token) {
+        const response = await authService.getCurrentUser();
+        const userData = response.user || response;
+        console.log('[AuthContext] Fresh user data received:', {
+          id: userData.id,
+          name: userData.name,
+          totalPoints: userData.totalPoints
+        });
+        setUser(userData);
+        console.log('[AuthContext] User state updated successfully');
+        return userData;
+      }
+    } catch (error) {
+      console.error('[AuthContext] refreshUser error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -228,6 +250,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    refreshUser,
     checkAuth,
   };
 

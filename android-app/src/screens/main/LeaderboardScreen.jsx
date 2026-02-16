@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { leaderboardService } from '../../services/leaderboardService';
 
@@ -76,6 +77,14 @@ const LeaderboardScreen = ({ navigation }) => {
   useEffect(() => {
     fetchLeaderboardData();
   }, [fetchLeaderboardData]);
+
+  // Refresh leaderboard when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Refresh data when user navigates to this screen
+      fetchLeaderboardData(true);
+    }, [fetchLeaderboardData])
+  );
 
   // Handle refresh
   const onRefresh = () => {

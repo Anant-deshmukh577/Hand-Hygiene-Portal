@@ -33,7 +33,9 @@ export const authService = {
 
   // Get current user
   getCurrentUser: async () => {
-    const response = await api.get('/auth/me');
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    const response = await api.get(`/auth/me?_t=${timestamp}`);
     return response;
   },
 

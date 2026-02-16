@@ -29,7 +29,7 @@ const COLORS = {
 const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
@@ -114,10 +114,31 @@ const DashboardScreen = ({ navigation }) => {
     }
   }, [userId, fetchDashboardData]);
 
+  // Update stats when user data changes (e.g., after claiming reward)
+  useEffect(() => {
+    if (user) {
+      console.log('[Dashboard] User data changed, updating stats');
+      console.log('[Dashboard] New user.totalPoints:', user.totalPoints);
+      setStats(prev => ({
+        ...prev,
+        totalPoints: user.totalPoints || prev.totalPoints,
+        totalObservations: user.totalObservations || prev.totalObservations,
+        complianceRate: user.complianceRate || prev.complianceRate,
+      }));
+    }
+  }, [user?.totalPoints, user?.totalObservations, user?.complianceRate]);
+
   // Handle refresh
-  const onRefresh = () => {
+  const onRefresh = async () => {
     if (userId && !refreshing) {
-      fetchDashboardData(true);
+      // Refresh user data from backend first
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+      // Then refresh dashboard data
+      await fetchDashboardData(true);
     }
   };
 

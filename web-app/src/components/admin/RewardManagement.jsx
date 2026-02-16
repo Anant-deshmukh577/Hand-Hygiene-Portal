@@ -82,6 +82,8 @@ const emojiOptions = ['🎁', '🏆', '⭐', '🎖️', '🥇', '🎯', '💎', 
 
 const RewardManagement = ({ rewards = [], onAdd, onEdit, onDelete, loading = false }) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingReward, setEditingReward] = useState(null);
   const [newReward, setNewReward] = useState({
     title: '',
     description: '',
@@ -120,6 +122,48 @@ const RewardManagement = ({ rewards = [], onAdd, onEdit, onDelete, loading = fal
     setErrors({});
   };
 
+  const handleEditClick = (reward) => {
+    setEditingReward({
+      id: reward.id || reward._id,
+      title: reward.title,
+      description: reward.description || '',
+      pointsRequired: reward.pointsRequired,
+      icon: reward.icon || '🎁',
+    });
+    setIsEditing(true);
+    setErrors({});
+  };
+
+  const handleUpdate = () => {
+    if (validateEditForm()) {
+      onEdit({
+        ...editingReward,
+        pointsRequired: parseInt(editingReward.pointsRequired),
+      });
+      setIsEditing(false);
+      setEditingReward(null);
+      setErrors({});
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingReward(null);
+    setErrors({});
+  };
+
+  const validateEditForm = () => {
+    const newErrors = {};
+    if (!editingReward.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    if (!editingReward.pointsRequired || parseInt(editingReward.pointsRequired) <= 0) {
+      newErrors.pointsRequired = 'Valid points required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   return (
     <div className="space-y-6">
       
@@ -130,7 +174,7 @@ const RewardManagement = ({ rewards = [], onAdd, onEdit, onDelete, loading = fal
           <p className="text-gray-500 mt-1">Create and manage rewards for staff members</p>
         </div>
         
-        {!isAddingNew && (
+        {!isAddingNew && !isEditing && (
           <button
             onClick={() => setIsAddingNew(true)}
             className="
@@ -357,7 +401,212 @@ const RewardManagement = ({ rewards = [], onAdd, onEdit, onDelete, loading = fal
         </div>
       )}
 
-      {/* ==================== REWARDS GRID ==================== */}
+      {/* ==================== EDIT REWARD FORM ==================== */}
+      {isEditing && editingReward && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-lg shadow-black/5 overflow-hidden">
+          
+          {/* Form Header */}
+          <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                <PencilIcon className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Edit Reward</h3>
+                <p className="text-sm text-gray-500">Update reward details</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="p-6 space-y-6">
+            
+            {/* Icon Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-3">
+                Choose Icon
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {emojiOptions.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setEditingReward(prev => ({ ...prev, icon: emoji }))}
+                    className={`
+                      w-12 h-12 rounded-xl text-2xl
+                      flex items-center justify-center
+                      border-2 transition-all duration-200
+                      ${editingReward.icon === emoji
+                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/20 scale-110'
+                        : 'border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/50'
+                      }
+                    `}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Title Input */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Reward Title <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                  <TagIcon />
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g., Coffee Voucher, Extra Break Time"
+                  value={editingReward.title}
+                  onChange={(e) => {
+                    setEditingReward(prev => ({ ...prev, title: e.target.value }));
+                    if (errors.title) setErrors(prev => ({ ...prev, title: '' }));
+                  }}
+                  className={`
+                    w-full pl-12 pr-4 py-3
+                    bg-white border rounded-xl
+                    text-gray-900 placeholder:text-gray-400
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    transition-all duration-200
+                    ${errors.title ? 'border-red-300 bg-red-50' : 'border-gray-200'}
+                  `}
+                />
+              </div>
+              {errors.title && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <XIcon className="h-4 w-4" />
+                  {errors.title}
+                </p>
+              )}
+            </div>
+
+            {/* Description Textarea */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Description
+              </label>
+              <textarea
+                placeholder="Describe the reward and how to redeem it..."
+                value={editingReward.description}
+                onChange={(e) => setEditingReward(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+                className="
+                  w-full px-4 py-3
+                  bg-white border border-gray-200 rounded-xl
+                  text-gray-900 placeholder:text-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  transition-all duration-200
+                  resize-none
+                "
+              />
+            </div>
+
+            {/* Points Required */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Points Required <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                  <StarIcon />
+                </div>
+                <input
+                  type="number"
+                  placeholder="e.g., 100"
+                  min="1"
+                  value={editingReward.pointsRequired}
+                  onChange={(e) => {
+                    setEditingReward(prev => ({ ...prev, pointsRequired: e.target.value }));
+                    if (errors.pointsRequired) setErrors(prev => ({ ...prev, pointsRequired: '' }));
+                  }}
+                  className={`
+                    w-full pl-12 pr-4 py-3
+                    bg-white border rounded-xl
+                    text-gray-900 placeholder:text-gray-400
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    transition-all duration-200
+                    ${errors.pointsRequired ? 'border-red-300 bg-red-50' : 'border-gray-200'}
+                  `}
+                />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <span className="text-gray-400 text-sm font-medium">points</span>
+                </div>
+              </div>
+              {errors.pointsRequired && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <XIcon className="h-4 w-4" />
+                  {errors.pointsRequired}
+                </p>
+              )}
+            </div>
+
+            {/* Preview Card */}
+            <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Preview</p>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20">
+                  {editingReward.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-gray-900 truncate">
+                    {editingReward.title || 'Reward Title'}
+                  </h4>
+                  <p className="text-sm text-gray-500 truncate">
+                    {editingReward.description || 'Reward description will appear here'}
+                  </p>
+                  <p className="text-amber-600 font-bold mt-1">
+                    {editingReward.pointsRequired || '0'} points
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Footer */}
+          <div className="px-6 py-5 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+              <button
+                onClick={handleCancelEdit}
+                className="
+                  inline-flex items-center justify-center gap-2
+                  px-6 py-3
+                  bg-white hover:bg-gray-50
+                  text-gray-700 font-semibold
+                  rounded-xl
+                  border border-gray-200
+                  shadow-md shadow-black/5
+                  hover:shadow-lg hover:shadow-black/10
+                  transition-all duration-300
+                "
+              >
+                <XIcon />
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={loading}
+                className="
+                  inline-flex items-center justify-center gap-2
+                  px-6 py-3
+                  bg-blue-600 hover:bg-blue-700
+                  text-white font-semibold
+                  rounded-xl
+                  shadow-lg shadow-blue-600/25
+                  hover:shadow-xl hover:shadow-blue-600/30
+                  transition-all duration-300
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                "
+              >
+                <CheckIcon />
+                Update Reward
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {rewards.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {rewards.map((reward) => (
@@ -423,7 +672,7 @@ const RewardManagement = ({ rewards = [], onAdd, onEdit, onDelete, loading = fal
               <div className="px-6 pb-6">
                 <div className="flex gap-3">
                   <button
-                    onClick={() => onEdit(reward)}
+                    onClick={() => handleEditClick(reward)}
                     className="
                       flex-1 inline-flex items-center justify-center gap-2
                       px-4 py-2.5

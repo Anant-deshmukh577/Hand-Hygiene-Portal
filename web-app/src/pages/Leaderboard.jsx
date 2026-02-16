@@ -121,6 +121,22 @@ const Leaderboard = () => {
     fetchLeaderboardData();
   }, [fetchLeaderboardData]);
 
+  // Refresh leaderboard when user navigates back to this page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, refresh data
+        fetchLeaderboardData(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchLeaderboardData]);
+
   const handleRefresh = () => {
     if (!refreshing) {
       fetchLeaderboardData(true);

@@ -24,7 +24,7 @@ const COLORS = {
 };
 
 const RewardsScreen = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [claimLoading, setClaimLoading] = useState(null);
@@ -132,24 +132,55 @@ const RewardsScreen = () => {
         {
           text: 'Claim',
           onPress: async () => {
+            console.log('[Rewards] Starting reward claim process for reward:', rewardId);
+            console.log('[Rewards] Current user points BEFORE claim:', user?.totalPoints);
+            
             setClaimLoading(rewardId);
             try {
-              await rewardService.claimReward(rewardId);
-              Alert.alert('Success', 'Reward claimed successfully!');
+              // Step 1: Claim the reward (backend deducts points here)
+              console.log('[Rewards] Calling backend to claim reward...');
+              const response = await rewardService.claimReward(rewardId);
+              console.log('[Rewards] Backend response:', response);
               
-              // Update local state
+              Alert.alert('Success', 'Reward claimed successfully! Pending admin approval.');
+              
+              // Step 2: Update local rewards state
               setRewards(prev => prev.map(r => 
                 r.id === rewardId ? { ...r, claimed: true } : r
               ));
               
-              // Update user points
-              if (updateUser && user) {
-                updateUser({ ...user, totalPoints: user.totalPoints - reward.pointsRequired });
+              // Step 3: Wait a moment for backend to complete
+              console.log('[Rewards] Waiting 500ms for backend to complete...');
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              // Step 4: Refresh user data from backend to get accurate points
+              console.log('[Rewards] Refreshing user data from backend...');
+              try {
+                const updatedUser = await refreshUser();
+                console.log('[Rewards] User data refreshed successfully');
+                console.log('[Rewards] New user points AFTER refresh:', updatedUser?.totalPoints);
+                
+                if (updatedUser && updatedUser.totalPoints === user?.totalPoints) {
+                  console.warn('[Rewards] WARNING: Points did not change after refresh!');
+                  console.warn('[Rewards] Expected points to be deducted but they are the same');
+                }
+              } catch (error) {
+                console.error('[Rewards] Failed to refresh user data:', error);
+                // Fallback: manually update points
+                if (updateUser && user) {
+                  console.log('[Rewards] Using fallback: manually deducting points');
+                  const newPoints = user.totalPoints - reward.pointsRequired;
+                  console.log('[Rewards] Manually setting points to:', newPoints);
+                  updateUser({ ...user, totalPoints: newPoints });
+                }
               }
               
-              // Refresh data
-              fetchRewardsData(true);
+              // Step 5: Refresh all rewards data
+              console.log('[Rewards] Refreshing rewards data...');
+              await fetchRewardsData(true);
+              console.log('[Rewards] Reward claim process complete');
             } catch (error) {
+              console.error('[Rewards] Error during reward claim:', error);
               Alert.alert('Error', error.message || 'Failed to claim reward');
             } finally {
               setClaimLoading(null);
