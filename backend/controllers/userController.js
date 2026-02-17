@@ -582,10 +582,12 @@ export const getUserStats = asyncHandler(async (req, res, next) => {
     ? parseFloat(((adherenceCount / totalObservations) * 100).toFixed(1))
     : 0;
 
-  // Recalculate totalPoints from actual observation points (source of truth)
-  const calculatedTotalPoints = observations.reduce((sum, obs) => sum + (obs.points || 0), 0);
+  // Calculate totalPoints from PointsHistory (includes both earned and spent points)
+  // This is the TRUE source of truth as it includes observations, rewards, badges, etc.
+  const pointsHistory = await PointsHistory.find({ user: user.id });
+  const calculatedTotalPoints = pointsHistory.reduce((sum, ph) => sum + ph.points, 0);
 
-  // Sync user record if it drifted from actual observation data
+  // Sync user record if it drifted from actual data
   if (user.totalPoints !== calculatedTotalPoints ||
       user.totalObservations !== totalObservations ||
       user.complianceRate !== complianceRate) {

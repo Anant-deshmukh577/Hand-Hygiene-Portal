@@ -44,12 +44,14 @@ export const getLeaderboard = asyncHandler(async (req, res, next) => {
   const query = { isActive: true };
   if (department && department !== 'all') query.department = department;
 
-  // Get users
+  // Get users with fresh data (not lean to ensure we get latest from DB)
   let users = await User.find(query)
-    .select('name email department designation totalPoints complianceRate totalObservations avatar')
-    .lean();
+    .select('name email department designation totalPoints complianceRate totalObservations avatar');
 
-  // If time period is not all_time, recalculate points for the period
+  // Convert to plain objects for manipulation
+  users = users.map(u => u.toObject());
+
+  // If time period is not all_time, calculate PERIOD-SPECIFIC stats for additional info
   if (timePeriod !== 'all_time') {
     const observationQuery = {
       createdAt: { $gte: startDate, $lte: endDate },
@@ -63,6 +65,7 @@ export const getLeaderboard = asyncHandler(async (req, res, next) => {
         observedStaff: user._id,
       });
 
+      // Calculate period-specific stats for additional display info
       const periodPoints = observations.reduce((sum, obs) => sum + obs.points, 0);
       const adherenceCount = observations.filter(o => o.adherence === 'adherence').length;
       const periodCompliance = observations.length > 0 
@@ -73,13 +76,11 @@ export const getLeaderboard = asyncHandler(async (req, res, next) => {
       user.periodObservations = observations.length;
       user.periodCompliance = parseFloat(periodCompliance);
     }
-
-    // Sort by period points
-    users.sort((a, b) => b.periodPoints - a.periodPoints);
-  } else {
-    // Sort by total points for all_time
-    users.sort((a, b) => b.totalPoints - a.totalPoints);
   }
+
+  // ALWAYS sort by actual totalPoints (includes reward deductions)
+  // This ensures ranking reflects true point balance
+  users.sort((a, b) => b.totalPoints - a.totalPoints);
 
   // Add rank
   users = users.slice(0, limit).map((user, index) => ({
@@ -219,11 +220,10 @@ export const getWardRankings = asyncHandler(async (req, res, next) => {
 export const getUserRank = asyncHandler(async (req, res, next) => {
   const { timePeriod = 'weekly' } = req.query;
 
-  // Get all users sorted by points
+  // Get all users sorted by points (not using .lean() to get fresh data)
   const users = await User.find({ isActive: true })
     .select('_id totalPoints')
-    .sort({ totalPoints: -1 })
-    .lean();
+    .sort({ totalPoints: -1 });
 
   const userIndex = users.findIndex(u => u._id.toString() === req.params.userId);
 
@@ -247,11 +247,11 @@ export const getUserRank = asyncHandler(async (req, res, next) => {
 export const getTopPerformers = asyncHandler(async (req, res, next) => {
   const { limit = 10, timePeriod = 'weekly' } = req.query;
 
+  // Get fresh data from database (not using .lean())
   const users = await User.find({ isActive: true })
     .select('name department designation totalPoints complianceRate avatar')
     .sort({ totalPoints: -1 })
-    .limit(parseInt(limit))
-    .lean();
+    .limit(parseInt(limit));
 
   res.status(200).json({
     success: true,

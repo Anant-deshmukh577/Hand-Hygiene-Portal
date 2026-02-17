@@ -87,7 +87,9 @@ const Leaderboard = () => {
         name: u.name,
         department: u.department,
         designation: u.designation,
-        totalPoints: filters.timePeriod !== 'all_time' ? (u.periodPoints || 0) : (u.totalPoints || 0),
+        // Always show actual totalPoints (includes reward deductions)
+        // periodPoints is only used for ranking, not display
+        totalPoints: u.totalPoints || 0,
         complianceRate: filters.timePeriod !== 'all_time' ? (u.periodCompliance || 0) : (u.complianceRate || 0),
         totalObservations: filters.timePeriod !== 'all_time' ? (u.periodObservations || 0) : (u.totalObservations || 0),
         avatar: u.avatar,
