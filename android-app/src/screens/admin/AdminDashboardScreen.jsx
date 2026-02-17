@@ -39,6 +39,7 @@ const AdminDashboardScreen = () => {
   });
   const [whoMomentsData, setWhoMomentsData] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -113,6 +114,32 @@ const AdminDashboardScreen = () => {
         setDepartmentData(deptData);
       } catch (error) {
         console.error('Error fetching department data:', error);
+      }
+
+      // Fetch recent activities from all users (admin view)
+      try {
+        const usersResponse = await userService.getAllUsers({ limit: 10 });
+        const allUsers = usersResponse.users || [];
+        
+        const allActivities = [];
+        for (const user of allUsers) {
+          try {
+            const activityResponse = await userService.getUserActivity(user._id || user.id);
+            const userActivities = (activityResponse.activities || []).map(activity => ({
+              ...activity,
+              userName: user.name,
+            }));
+            allActivities.push(...userActivities);
+          } catch (error) {
+            continue;
+          }
+        }
+        
+        allActivities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setRecentActivities(allActivities.slice(0, 10));
+      } catch (error) {
+        console.error('Error fetching recent activities:', error);
+        setRecentActivities([]);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -691,7 +718,10 @@ const AdminDashboardScreen = () => {
           <Text style={{ fontSize: 16, fontWeight: '800', color: '#1e293b', letterSpacing: -0.3 }}>
             Recent Activity
           </Text>
-          <Pressable className="active:opacity-60">
+          <Pressable 
+            onPress={() => navigation.navigate('Profile')}
+            className="active:opacity-60"
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.violet.primary, marginRight: 4 }}>
                 View All
@@ -715,51 +745,88 @@ const AdminDashboardScreen = () => {
             overflow: 'hidden',
           }}
         >
-          {[
-            { action: 'User added', user: 'Dr. Smith', time: '5 min ago', icon: 'person-add', color: COLORS.emerald },
-            { action: 'Ward updated', user: 'ICU-A', time: '1 hour ago', icon: 'create', color: COLORS.indigo },
-            { action: 'Report generated', user: 'Weekly Report', time: '3 hours ago', icon: 'document-text', color: COLORS.violet },
-            { action: 'Reward claimed', user: 'Coffee Voucher', time: '5 hours ago', icon: 'gift', color: COLORS.amber },
-          ].map((item, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                borderBottomWidth: index < 3 ? 1 : 0,
-                borderBottomColor: '#f1f5f9',
-              }}
-            >
+          {recentActivities.length > 0 ? (
+            recentActivities.slice(0, 4).map((activity, index) => {
+              const getActivityIcon = () => {
+                if (activity.type === 'earned' || activity.source === 'observation') return 'checkmark-circle';
+                if (activity.type === 'spent' || activity.source === 'reward') return 'gift';
+                if (activity.source === 'badge') return 'star';
+                return 'clipboard';
+              };
+              
+              const getActivityColor = () => {
+                if (activity.type === 'earned' || activity.source === 'observation') return COLORS.emerald;
+                if (activity.type === 'spent' || activity.source === 'reward') return COLORS.amber;
+                if (activity.source === 'badge') return COLORS.violet;
+                return COLORS.indigo;
+              };
+              
+              const color = getActivityColor();
+              
+              return (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    borderBottomWidth: index < recentActivities.slice(0, 4).length - 1 ? 1 : 0,
+                    borderBottomColor: '#f1f5f9',
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: color.muted,
+                      borderWidth: 1,
+                      borderColor: color.light,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name={getActivityIcon()} size={18} color={color.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#1e293b', marginBottom: 2 }} numberOfLines={1}>
+                      {activity.description}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#94a3b8' }}>
+                      {activity.points > 0 ? `+${activity.points}` : activity.points} points
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: 10, color: '#cbd5e1', fontWeight: '500' }}>
+                    {new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+              );
+            })
+          ) : (
+            <View style={{ paddingVertical: 32, paddingHorizontal: 16, alignItems: 'center' }}>
               <View
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   borderRadius: 12,
-                  backgroundColor: item.color.muted,
-                  borderWidth: 1,
-                  borderColor: item.color.light,
+                  backgroundColor: '#f1f5f9',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: 12,
+                  marginBottom: 12,
                 }}
               >
-                <Ionicons name={item.icon} size={18} color={item.color.primary} />
+                <Ionicons name="clipboard-outline" size={24} color="#94a3b8" />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#1e293b', marginBottom: 2 }}>
-                  {item.action}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#94a3b8' }}>
-                  {item.user}
-                </Text>
-              </View>
-              <Text style={{ fontSize: 10, color: '#cbd5e1', fontWeight: '500' }}>
-                {item.time}
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748b', marginBottom: 4 }}>
+                No recent activity
+              </Text>
+              <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
+                Activity will appear here as users interact with the system
               </Text>
             </View>
-          ))}
+          )}
         </View>
       </View>
 

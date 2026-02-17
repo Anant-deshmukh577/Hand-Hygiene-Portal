@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { reportService } from '../services/reportService';
 import { leaderboardService } from '../services/leaderboardService';
@@ -65,6 +66,7 @@ const WaveIcon = () => (
 const Dashboard = () => {
   const { user, refreshUser } = useAuth();
   const { showError } = useNotification();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
@@ -416,7 +418,7 @@ const Dashboard = () => {
             activities={recentActivities}
             maxItems={6}
             showViewAll
-            onViewAll={() => window.location.href = '/observation-history'}
+            onViewAll={() => navigate('/profile')}
           />
         </div>
 

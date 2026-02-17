@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useNotification } from '../../context/NotificationContext';
 import { reportService } from '../../services/reportService';
 import { userService } from '../../services/userService';
@@ -85,6 +85,7 @@ const ShieldIcon = () => (
 
 const AdminDashboard = () => {
   const { showError } = useNotification();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -95,6 +96,7 @@ const AdminDashboard = () => {
     activeWards: 0,
   });
   const [weeklyData, setWeeklyData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   const fetchAdminDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
@@ -152,6 +154,36 @@ const AdminDashboard = () => {
         { day: 'Sat', observations: 0, compliance: 0 },
         { day: 'Sun', observations: 0, compliance: 0 },
       ]);
+
+      // Fetch recent activities from all users (admin view)
+      try {
+        // Get all users
+        const usersResponse = await userService.getUsers({ limit: 100 });
+        const allUsers = usersResponse.users || [];
+        
+        // Collect activities from all users
+        const allActivities = [];
+        for (const user of allUsers.slice(0, 10)) { // Limit to first 10 users for performance
+          try {
+            const activityResponse = await userService.getUserActivity(user._id || user.id);
+            const userActivities = (activityResponse.activities || []).map(activity => ({
+              ...activity,
+              userName: user.name,
+            }));
+            allActivities.push(...userActivities);
+          } catch (error) {
+            // Skip if user activity fetch fails
+            continue;
+          }
+        }
+        
+        // Sort by date and take most recent
+        allActivities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setRecentActivities(allActivities.slice(0, 10));
+      } catch (error) {
+        console.error('Failed to fetch recent activities', error);
+        setRecentActivities([]);
+      }
 
       setLastUpdated(new Date());
     } catch (error) {
@@ -476,41 +508,53 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-                    <p className="text-sm text-gray-500">Latest admin actions</p>
+                    <p className="text-sm text-gray-500">Latest system actions</p>
                   </div>
                 </div>
-                <Link to="/admin/activity" className="text-sm text-teal-600 hover:text-teal-700 font-medium">
+                <button 
+                  onClick={() => navigate('/profile')}
+                  className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                >
                   View All →
-                </Link>
+                </button>
               </div>
             </div>
 
             <div className="divide-y divide-gray-100">
-              {[
-                { action: 'User added', user: 'Dr. Smith', time: '5 min ago', type: 'create' },
-                { action: 'Ward updated', user: 'ICU-A', time: '1 hour ago', type: 'update' },
-                { action: 'Report generated', user: 'Weekly Report', time: '3 hours ago', type: 'report' },
-                { action: 'Reward claimed', user: 'Coffee Voucher', time: '5 hours ago', type: 'reward' },
-              ].map((item, index) => (
-                <div key={index} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50/50 transition-colors">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    item.type === 'create' ? 'bg-green-100 text-green-600' :
-                    item.type === 'update' ? 'bg-blue-100 text-blue-600' :
-                    item.type === 'report' ? 'bg-purple-100 text-purple-600' :
-                    'bg-amber-100 text-amber-600'
-                  }`}>
-                    {item.type === 'create' && <UsersIcon className="h-4 w-4" />}
-                    {item.type === 'update' && <BuildingIcon className="h-4 w-4" />}
-                    {item.type === 'report' && <DocumentReportIcon className="h-4 w-4" />}
-                    {item.type === 'reward' && <GiftIcon className="h-4 w-4" />}
+              {recentActivities.length > 0 ? (
+                recentActivities.slice(0, 4).map((activity, index) => (
+                  <div key={index} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50/50 transition-colors">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      activity.type === 'earned' || activity.source === 'observation' ? 'bg-green-100 text-green-600' :
+                      activity.type === 'spent' || activity.source === 'reward' ? 'bg-amber-100 text-amber-600' :
+                      activity.source === 'badge' ? 'bg-purple-100 text-purple-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      {(activity.type === 'earned' || activity.source === 'observation') && <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                      {(activity.type === 'spent' || activity.source === 'reward') && <GiftIcon className="h-4 w-4" />}
+                      {activity.source === 'badge' && <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>}
+                      {!activity.source && <ClipboardIcon className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{activity.description}</p>
+                      <p className="text-xs text-gray-500">
+                        {activity.points > 0 ? `+${activity.points}` : activity.points} points
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{item.action}</p>
-                    <p className="text-xs text-gray-500">{item.user}</p>
+                ))
+              ) : (
+                <div className="px-6 py-8 text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <ClipboardIcon className="h-6 w-6 text-gray-400" />
                   </div>
-                  <span className="text-xs text-gray-400">{item.time}</span>
+                  <p className="text-sm text-gray-500">No recent activity</p>
+                  <p className="text-xs text-gray-400 mt-1">Activity will appear here as users interact with the system</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

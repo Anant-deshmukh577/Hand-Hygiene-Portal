@@ -170,7 +170,8 @@ export const createObservation = asyncHandler(async (req, res, next) => {
   // Send email notification to admin about new observation
   try {
     const auditor = await User.findById(req.user.id);
-    const wardDoc = ward ? await Ward.findById(ward) : null;
+    // Ward is stored as a name string in observations, not an ObjectId
+    const wardDoc = ward ? await Ward.findOne({ name: ward }) : null;
     const adminUsers = await User.find({ role: 'admin', isActive: true });
     
     if (adminUsers.length > 0 && auditor) {
